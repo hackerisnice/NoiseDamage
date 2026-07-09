@@ -2,6 +2,7 @@ package com.panda.noisedamage.manager;
 
 import com.panda.noisedamage.config.NoiseConfig;
 import com.panda.noisedamage.network.NoiseSyncPacket;
+import net.fabricmc.fabric.api.entity.EntityDataSaver;  // 新增导入
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.MinecraftServer;
@@ -60,7 +61,8 @@ public class NoiseManager {
     }
 
     public static void loadPlayerData(ServerPlayerEntity player) {
-        NbtCompound persistentData = player.getPersistentData();
+        // 强制转换为 EntityDataSaver 以访问持久化数据
+        NbtCompound persistentData = ((EntityDataSaver) player).getPersistentData();
         if (persistentData.contains("NoiseDamage")) {
             NbtCompound tag = persistentData.getCompound("NoiseDamage");
             PlayerNoiseData data = new PlayerNoiseData();
@@ -73,7 +75,7 @@ public class NoiseManager {
     public static void savePlayerData(ServerPlayerEntity player) {
         PlayerNoiseData data = dataMap.remove(player.getUuid());
         if (data != null) {
-            NbtCompound persistentData = player.getPersistentData();
+            NbtCompound persistentData = ((EntityDataSaver) player).getPersistentData();
             NbtCompound tag = new NbtCompound();
             tag.putFloat("NoiseLevel", data.noiseLevel);
             tag.putLong("LastIncreaseTick", data.lastIncreaseTick);
