@@ -2,7 +2,6 @@ package com.panda.noisedamage.manager;
 
 import com.panda.noisedamage.config.NoiseConfig;
 import com.panda.noisedamage.network.NoiseSyncPacket;
-import net.fabricmc.fabric.api.entity.EntityDataSaver;  // 新增导入
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.MinecraftServer;
@@ -60,11 +59,10 @@ public class NoiseManager {
         }
     }
 
-    public static void loadPlayerData(ServerPlayerEntity player) {
-        // 强制转换为 EntityDataSaver 以访问持久化数据
-        NbtCompound persistentData = ((EntityDataSaver) player).getPersistentData();
-        if (persistentData.contains("NoiseDamage")) {
-            NbtCompound tag = persistentData.getCompound("NoiseDamage");
+    // 从 NBT 加载玩家噪声数据（由 Mixin 调用）
+    public static void readPlayerDataFromNbt(ServerPlayerEntity player, NbtCompound nbt) {
+        if (nbt.contains("NoiseDamage")) {
+            NbtCompound tag = nbt.getCompound("NoiseDamage");
             PlayerNoiseData data = new PlayerNoiseData();
             data.noiseLevel = tag.getFloat("NoiseLevel");
             data.lastIncreaseTick = tag.getLong("LastIncreaseTick");
@@ -72,15 +70,24 @@ public class NoiseManager {
         }
     }
 
-    public static void savePlayerData(ServerPlayerEntity player) {
-        PlayerNoiseData data = dataMap.remove(player.getUuid());
+    // 保存玩家噪声数据到 NBT（由 Mixin 调用）
+    public static void writePlayerDataToNbt(ServerPlayerEntity player, NbtCompound nbt) {
+        PlayerNoiseData data = dataMap.get(player.getUuid());
         if (data != null) {
-            NbtCompound persistentData = ((EntityDataSaver) player).getPersistentData();
             NbtCompound tag = new NbtCompound();
             tag.putFloat("NoiseLevel", data.noiseLevel);
             tag.putLong("LastIncreaseTick", data.lastIncreaseTick);
-            persistentData.put("NoiseDamage", tag);
+            nbt.put("NoiseDamage", tag);
         }
+    }
+
+    // 保留原有的加载/保存方法供其他事件调用（已不需要，但可做清理用）
+    public static void loadPlayerData(ServerPlayerEntity player) {
+        // 数据现在由 Mixin 自动加载，无需手动调用
+    }
+
+    public static void savePlayerData(ServerPlayerEntity player) {
+        // 数据现在由 Mixin 自动保存，无需手动调用
     }
 
     private static class PlayerNoiseData {
