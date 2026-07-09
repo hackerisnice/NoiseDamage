@@ -1,1 +1,22 @@
-
+{
+  "schemaVersion": 1,
+  "id": "noisedamage",
+  "version": "${version}",
+  "name": "Noise Damage",
+  "description": "Loud sounds hurt! Accumulate noise from in-game sounds, take damage at high levels.",
+  "authors": ["panda"],
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["com.panda.noisedamage.NoiseDamageMod"],
+    "client": ["com.panda.noisedamage.NoiseDamageModClient"]
+  },
+  "mixins": [
+    "mixins.noisedamage.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.15.0",
+    "minecraft": "1.21",
+    "fabric-api": "*"
+  }
+}
