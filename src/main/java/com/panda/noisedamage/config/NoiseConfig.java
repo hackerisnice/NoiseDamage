@@ -33,7 +33,7 @@ public class NoiseConfig {
         for (Identifier id : Registries.SOUND_EVENT.getIds()) {
             defaults.put(id.toString(), 0.0f);
         }
-
+        // 预设一些常用声音的分贝值
         defaults.put("entity.player.hurt", 5.0f);
         defaults.put("entity.player.death", 8.0f);
         defaults.put("entity.creeper.primed", 8.0f);
@@ -42,6 +42,7 @@ public class NoiseConfig {
         defaults.put("entity.lightning_bolt.thunder", 12.0f);
         defaults.put("block.anvil.land", 6.0f);
         defaults.put("entity.ender_dragon.death", 15.0f);
+        // 可根据需要添加更多
 
         ConfigFile file = new ConfigFile();
         file.sound_levels = defaults;
@@ -67,15 +68,9 @@ public class NoiseConfig {
             } else {
                 soundLevels = new HashMap<>();
             }
-            if (file.decay_delay_seconds > 0) {
-                decayDelaySeconds = file.decay_delay_seconds;
-            }
-            if (file.damage_threshold > 0) {
-                damageThreshold = file.damage_threshold;
-            }
-            if (file.damage_per_second > 0) {
-                damagePerSecond = file.damage_per_second;
-            }
+            decayDelaySeconds = Math.max(1, file.decay_delay_seconds);
+            damageThreshold = Math.max(1f, file.damage_threshold);
+            damagePerSecond = Math.max(0.5f, file.damage_per_second);
         } catch (IOException e) {
             e.printStackTrace();
             soundLevels = new HashMap<>();
