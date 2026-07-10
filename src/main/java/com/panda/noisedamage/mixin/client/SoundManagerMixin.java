@@ -12,6 +12,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class SoundManagerMixin {
     @Inject(method = "play(Lnet/minecraft/client/sound/SoundInstance;)V", at = @At("HEAD"))
     private void onPlaySound(SoundInstance sound, CallbackInfo ci) {
-        ClientNoiseManager.onSoundPlayed(sound);
+        try {
+            ClientNoiseManager.onSoundPlayed(sound);
+        } catch (Exception ignored) {
+            // 完全不理会任何异常，避免影响游戏
+        }
     }
 }
