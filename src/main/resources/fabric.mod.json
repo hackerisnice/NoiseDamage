@@ -3,7 +3,7 @@
   "id": "noisedamage",
   "version": "${version}",
   "name": "Noise Damage",
-  "description": "Loud sounds hurt! Accumulate noise from in-game sounds, take damage at high levels.",
+  "description": "Loud sounds hurt! All game sounds increase your noise level.",
   "authors": ["panda"],
   "license": "MIT",
   "environment": "*",
