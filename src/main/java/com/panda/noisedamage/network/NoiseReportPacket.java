@@ -5,11 +5,11 @@ import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
-public record NoiseSyncPacket(float noise) implements CustomPayload {
-    public static final Id<NoiseSyncPacket> ID = new Id<>(Identifier.of("noisedamage", "noise_sync"));
-    public static final PacketCodec<PacketByteBuf, NoiseSyncPacket> CODEC =
+public record NoiseReportPacket(float noise) implements CustomPayload {
+    public static final Id<NoiseReportPacket> ID = new Id<>(Identifier.of("noisedamage", "noise_report"));
+    public static final PacketCodec<PacketByteBuf, NoiseReportPacket> CODEC =
             PacketCodec.of((value, buf) -> buf.writeFloat(value.noise),
-                           buf -> new NoiseSyncPacket(buf.readFloat()));
+                           buf -> new NoiseReportPacket(buf.readFloat()));
 
     @Override
     public Id<? extends CustomPayload> getId() {
