@@ -17,10 +17,12 @@ public class ClientNoiseManager {
     private static float currentNoise = 0f;
     private static long lastIncreaseTick = 0;
     private static long clientTick = 0;
+    // 调试开关：改成 false 可关闭日志刷屏
+    private static final boolean DEBUG_LOG_ALL = true;
 
     public static void init() {
         currentNoise = 0f;
-        LOGGER.info("ClientNoiseManager initialized. Config loaded: {} sounds, threshold={}, decay={}s",
+        LOGGER.info("Initialized. Sounds in config: {}, Threshold: {} dB, Decay: {}s",
                 NoiseConfig.soundLevels.size(), NoiseConfig.damageThreshold, NoiseConfig.decayDelaySeconds);
     }
 
@@ -37,37 +39,33 @@ public class ClientNoiseManager {
                 return;
             }
 
-            Identifier id = sound.getId();
+            Identifier id = sound.getId();  // 此处可能抛出异常，由外层 try 捕获
             if (id == null) return;
 
-            SoundEvent event = Registries.SOUND_EVENT.get(id);
+            float volume = sound.getVolume();
             float baseDB = 0f;
-            String lookupType = "unknown";
+            SoundEvent event = Registries.SOUND_EVENT.get(id);
             if (event != null) {
                 baseDB = NoiseConfig.getSoundLevel(event);
-                lookupType = "registered";
             } else {
                 baseDB = NoiseConfig.soundLevels.getOrDefault(id.toString(), 0f);
-                lookupType = "string";
             }
 
-            // 调试输出：所有非零分贝的声音，或所有脚步声（step）
-            if (baseDB > 0 || id.getPath().contains("step")) {
-                LOGGER.info("[Sound] {} | dB: {} | vol: {} | cat: {} | lookup: {}",
-                        id, baseDB, sound.getVolume(), cat, lookupType);
+            // 调试：输出所有声音（如果太多可关闭 DEBUG_LOG_ALL）
+            if (DEBUG_LOG_ALL) {
+                LOGGER.info("[ALL] {} | dB: {} | vol: {} | cat: {}", id, baseDB, volume, cat);
             }
 
             if (baseDB <= 0) return;
 
-            float volume = sound.getVolume();
             float added = baseDB * volume;
             if (added > 0) {
                 currentNoise += added;
                 lastIncreaseTick = clientTick;
-                LOGGER.info("[Noise] +{} dB (total: {})", added, currentNoise);
+                LOGGER.info("[Noise+] {} (+{} dB)", id, added);
             }
         } catch (Exception e) {
-            LOGGER.error("Error processing sound", e);
+            // 静默忽略，不做任何日志（异常声音非常多，避免刷屏卡顿）
         }
     }
 
@@ -84,10 +82,6 @@ public class ClientNoiseManager {
 
         if (clientTick % 20 == 0) {
             ClientPlayNetworking.send(new NoiseReportPacket(currentNoise));
-            // 每秒报告一次当前噪声值（方便观察）
-            if (currentNoise > 0) {
-                LOGGER.info("[Status] Noise: {:.1f} dB", currentNoise);
-            }
         }
     }
 }
