@@ -1,21 +1,21 @@
 package com.panda.noisedamage;
 
+import com.panda.noisedamage.client.ClientNoiseManager;
 import com.panda.noisedamage.hud.NoiseHudOverlay;
-import com.panda.noisedamage.network.NoiseSyncPacket;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 
 public class NoiseDamageModClient implements ClientModInitializer {
-    public static float clientNoiseLevel = 0f;
-
     @Override
     public void onInitializeClient() {
-        ClientPlayNetworking.registerGlobalReceiver(NoiseSyncPacket.ID, (payload, context) -> {
-            context.client().execute(() -> {
-                clientNoiseLevel = payload.noise();
-            });
+        ClientNoiseManager.init();
+
+        // 客户端每 tick 衰减并上报
+        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            ClientNoiseManager.clientTick();
         });
 
+        // 注册 HUD
         NoiseHudOverlay.register();
     }
 }
