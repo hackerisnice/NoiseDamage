@@ -27,29 +27,37 @@ public class ClientNoiseManager {
      * 由 SoundManagerMixin 调用，当客户端播放任意声音时触发
      */
     public static void onSoundPlayed(SoundInstance sound) {
-        // 忽略背景音乐和天气
-        SoundCategory cat = sound.getCategory();
-        if (cat == SoundCategory.MUSIC || cat == SoundCategory.RECORDS || cat == SoundCategory.WEATHER) {
-            return;
-        }
+        try {
+            if (sound == null) return;
 
-        Identifier id = sound.getId();
-        SoundEvent event = Registries.SOUND_EVENT.get(id);
-        float baseDB = 0f;
-        if (event != null) {
-            baseDB = NoiseConfig.getSoundLevel(event);
-        } else {
-            // 兜底：直接用标识符字符串查找
-            baseDB = NoiseConfig.soundLevels.getOrDefault(id.toString(), 0f);
-        }
+            // 忽略背景音乐和天气
+            SoundCategory cat = sound.getCategory();
+            if (cat == SoundCategory.MUSIC || cat == SoundCategory.RECORDS || cat == SoundCategory.WEATHER) {
+                return;
+            }
 
-        if (baseDB <= 0) return;
+            Identifier id = sound.getId();
+            if (id == null) return;  // 防止空声音 ID
 
-        float volume = sound.getVolume();
-        float added = baseDB * volume;
-        if (added > 0) {
-            currentNoise += added;
-            lastIncreaseTick = clientTick;
+            SoundEvent event = Registries.SOUND_EVENT.get(id);
+            float baseDB = 0f;
+            if (event != null) {
+                baseDB = NoiseConfig.getSoundLevel(event);
+            } else {
+                // 兜底：直接用标识符字符串查找
+                baseDB = NoiseConfig.soundLevels.getOrDefault(id.toString(), 0f);
+            }
+
+            if (baseDB <= 0) return;
+
+            float volume = sound.getVolume();
+            float added = baseDB * volume;
+            if (added > 0) {
+                currentNoise += added;
+                lastIncreaseTick = clientTick;
+            }
+        } catch (Exception e) {
+            // 忽略任何意外异常，避免游戏崩溃
         }
     }
 
