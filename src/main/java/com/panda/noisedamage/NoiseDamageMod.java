@@ -5,6 +5,7 @@ import com.panda.noisedamage.config.NoiseConfig;
 import com.panda.noisedamage.network.NoiseReportPacket;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -40,19 +41,17 @@ public class NoiseDamageMod implements ModInitializer {
             }
         });
 
-        // 玩家退出时清除其记录
+        // 玩家退出时清除记录
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
             playerNoise.remove(handler.getPlayer().getUuid());
         });
 
-        // 首次启动时加载配置
-        ServerTickEvents.START_SERVER_TICK.register(server -> {
-            if (server.getTicks() == 1) {
-                NoiseConfig.loadOrGenerate();
-            }
+        // 服务器启动时加载一次配置（仅一次）
+        ServerLifecycleEvents.SERVER_STARTING.register(server -> {
+            NoiseConfig.loadOrGenerate();
         });
 
-        // 注册重载命令
+        // 重载命令
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             ReloadCommand.register(dispatcher);
         });
